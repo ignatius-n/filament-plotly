@@ -31,7 +31,7 @@ class FilamentPlotlyCommand extends Command
     /**
      * Chart options
      */
-    private array $chartOptions;
+    // private array $chartOptions;
 
     /**
      * Create a new command instance.
@@ -40,8 +40,7 @@ class FilamentPlotlyCommand extends Command
     {
         parent::__construct();
 
-        $this->files        = $files;
-        $this->chartOptions = config('filament-plotly.chart_options');
+        $this->files = $files;
     }
 
     public function handle(): int
@@ -64,11 +63,6 @@ class FilamentPlotlyCommand extends Command
 
         $resource      = null;
         $resourceClass = null;
-
-        $chartType = select(
-            label: 'What type of chart do you want to create?',
-            options: $this->chartOptions,
-        );
 
         if (class_exists(Resource::class)) {
             $resourceInput = text(
@@ -151,7 +145,7 @@ class FilamentPlotlyCommand extends Command
 
         if ($path) {
             $this->makeDirectory($path);
-            $contents = $this->getSourceFile($namespace, $widget, $chartType);
+            $contents = $this->getSourceFile($namespace, $widget);
             $file     = $path . '/' . $widget . '.php';
             if ($this->files->exists($file)) {
                 $this->error("File : {$file} already exits!");
@@ -169,11 +163,42 @@ class FilamentPlotlyCommand extends Command
             }
         } elseif ($resourcePath) {
 
-            $this->makeDirectory($resourcePath . '/' . $resourceClass . '/Widgets');
+            $resourceFqn = str($resource)->contains('\\') ? $resource : ($resourceNamespace ? $resourceNamespace . '\\' . $resource : $resource);
 
-            $contents = $this->getSourceFile($resourceNamespace . '\\' . $resourceClass . '\\Widgets', $widget, $chartType);
+            if (class_exists($resourceFqn)) {
+                $reflection = new \ReflectionClass($resourceFqn);
 
-            $file = $resourcePath . '/' . $resourceClass . '/Widgets/' . $widget . '.php';
+                $pluralResourceBasenameBeforeResource = (string) str($resourceFqn)
+                    ->classBasename()
+                    ->beforeLast('Resource')
+                    ->plural();
+
+                $resourceNamespacePartBeforeBasename = (string) str($resourceFqn)
+                    ->beforeLast('\\')
+                    ->classBasename();
+
+                if ($pluralResourceBasenameBeforeResource === $resourceNamespacePartBeforeBasename) {
+                    $widgetsNamespace = (string) str($resourceFqn)->beforeLast('\\')->append('\\Widgets');
+                    $widgetsDirectory = (string) str($reflection->getFileName())->beforeLast(DIRECTORY_SEPARATOR)->append('/Widgets');
+                } else {
+                    $widgetsNamespace = $resourceFqn . '\\Widgets';
+                    $widgetsDirectory = (string) str($reflection->getFileName())->beforeLast('.')->append('/Widgets');
+                }
+            } else {
+                // Guess standard layout: Resources/{PluralResourceName}/Widgets
+                $base   = (string) str($resource)->afterLast('\\')->beforeLast('Resource');
+                $folder = (string) Str::of($base)->plural();
+
+                $widgetsNamespace = rtrim($resourceNamespace, '\\') . '\\' . $folder . '\\Widgets';
+                $widgetsDirectory = rtrim($resourcePath, '/\\') . DIRECTORY_SEPARATOR . $folder . DIRECTORY_SEPARATOR . 'Widgets';
+            }
+
+            // Ensure the directory exists and write the widget class into it
+            $this->makeDirectory($widgetsDirectory);
+
+            $contents = $this->getSourceFile($widgetsNamespace, $widget);
+
+            $file = rtrim($widgetsDirectory, '/\\') . DIRECTORY_SEPARATOR . $widget . '.php';
 
             if ($this->files->exists($file)) {
                 $this->error("File : {$file} already exits!");
@@ -184,7 +209,9 @@ class FilamentPlotlyCommand extends Command
 
             $this->files->put($file, $contents);
 
-            $this->info("Successfully created {$resourceClass}! Make sure to register the widget in `{$resourceClass}::getWidgets()`, and then again in `getHeaderWidgets()` or `getFooterWidgets()` of any `{$resourceClass}` page.");
+            $resourceClassName = (string) str($resource)->afterLast('\\');
+
+            $this->info("Successfully created {$resourceClassName} widget! Make sure to register the widget in `{$resourceClassName}::getWidgets()`, and then again in `getHeaderWidgets()` or `getFooterWidgets()` of any `{$resourceClassName}` page.");
 
             if ($fileCount === 0) {
                 $this->welcomeMessage();
@@ -209,7 +236,7 @@ class FilamentPlotlyCommand extends Command
     /**
      * Return the stub file path
      */
-    public function getStubPath($chartType): string
+    public function getStubPath(): string
     {
         $path = Str::of(__DIR__);
 
@@ -218,7 +245,7 @@ class FilamentPlotlyCommand extends Command
             'Windows' => $path->replace('src\Commands', 'stubs\\')
         };
 
-        return $path->append($chartType)->append('.stub');
+        return $path->append('Chart.stub');
     }
 
     /**
@@ -237,9 +264,9 @@ class FilamentPlotlyCommand extends Command
     /**
      * Get the stub path and the stub variables
      */
-    public function getSourceFile($namespace, $widget, $chartType): Stringable
+    public function getSourceFile($namespace, $widget): Stringable
     {
-        return $this->getStubContents($this->getStubPath($chartType), $this->getStubVariables($namespace, $widget));
+        return $this->getStubContents($this->getStubPath(), $this->getStubVariables($namespace, $widget));
     }
 
     /**

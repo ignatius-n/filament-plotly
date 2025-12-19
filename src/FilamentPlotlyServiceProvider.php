@@ -14,11 +14,10 @@ use Asharif88\FilamentPlotly\Commands\FilamentPlotlyCommand;
 use Asharif88\FilamentPlotly\Testing\TestsFilamentPlotly;
 use Filament\Support\Assets\AlpineComponent;
 use Filament\Support\Assets\Asset;
-use Filament\Support\Assets\Css;
-use Filament\Support\Assets\Js;
 use Filament\Support\Facades\FilamentAsset;
 use Filament\Support\Facades\FilamentIcon;
 use Illuminate\Filesystem\Filesystem;
+use Illuminate\Support\Facades\Blade;
 use Livewire\Features\SupportTesting\Testable;
 use Spatie\LaravelPackageTools\Package;
 use Spatie\LaravelPackageTools\PackageServiceProvider;
@@ -42,25 +41,26 @@ class FilamentPlotlyServiceProvider extends PackageServiceProvider
             ->hasTranslations()
             ->hasCommands($this->getCommands());
 
-        $configFileName = $package->shortName();
+        // $configFileName = $package->shortName();
 
-        if (file_exists($package->basePath("/../config/{$configFileName}.php"))) {
-            $package->hasConfigFile();
-        }
-
-        if (file_exists($package->basePath('/../resources/lang'))) {
-            $package->hasTranslations();
-        }
-
-        if (file_exists($package->basePath('/../resources/views'))) {
-            $package->hasViews(static::$viewNamespace);
-        }
+        //        if (file_exists($package->basePath("/../config/{$configFileName}.php"))) {
+        //            $package->hasConfigFile();
+        //        }
+        //
+        //        if (file_exists($package->basePath('/../resources/lang'))) {
+        //            $package->hasTranslations();
+        //        }
+        //
+        //        if (file_exists($package->basePath('/../resources/views'))) {
+        //            $package->hasViews(static::$viewNamespace);
+        //        }
     }
 
     public function packageRegistered(): void {}
 
     public function packageBooted(): void
     {
+        Blade::componentNamespace('Asharif88\\FilamentPlotly\\Components', 'filament-plotly');
         // Asset Registration
         FilamentAsset::register(
             $this->getAssets(),
@@ -99,9 +99,7 @@ class FilamentPlotlyServiceProvider extends PackageServiceProvider
     protected function getAssets(): array
     {
         return [
-            // AlpineComponent::make('filament-plotly', __DIR__ . '/../resources/dist/components/filament-plotly.js'),
-            Css::make('filament-plotly-styles', __DIR__ . '/../resources/dist/filament-plotly.css'),
-            Js::make('filament-plotly-scripts', __DIR__ . '/../resources/dist/filament-plotly.js'),
+            AlpineComponent::make('filament-plotly', __DIR__ . '/../resources/dist/filament-plotly.js'),
         ];
     }
 

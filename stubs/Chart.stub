@@ -1,0 +1,65 @@
+<?php
+
+namespace $NAMESPACE$;
+
+use Asharif88\FilamentPlotly\Widgets\PlotlyWidget;
+
+class $CLASS_NAME$ extends PlotlyWidget
+{
+    /**
+     * Chart Id
+     */
+    protected static ?string $chartId = '$CHART_ID$';
+
+    /**
+     * Widget Title
+     *
+     * @var string|null
+     */
+    protected static ?string $heading = '$CLASS_NAME$';
+
+    /**
+     * Chart data options
+     * https://plotly.com/javascript/reference/
+     *
+     * @return array
+     */
+    protected function getChartData(): array
+    {
+        return [
+            'x'      => ['Giraffes', 'Orangutans', 'Monkeys'],
+            'y'      => [20, 14, 23],
+            'type'   => 'bar',
+            'marker' => ['color' => 'rgb(255, 100, 102)'],
+            '',
+        ];
+    }
+
+    /**
+     * Chart layout options
+     * https://plotly.com/javascript/reference/layout/
+     *
+     * @return array
+     */
+    protected function getChartLayout(): array
+    {
+        return [
+           'autosize'   => true,
+           'margin'     => ['t' => 80, 'l' => 50],
+           'responsive' => true,
+           'showlegend' => true,
+        ];
+    }
+
+    /**
+     * Chart configuration options
+     * The plotly.js config argument sets properties like the mode bar buttons and the interactivity in the chart. It's the last argument in Plotly.react calls.
+     * https://plotly.com/javascript/configuration-options/
+     *
+     * @return array
+     */
+    protected function getChartConfig(): array
+    {
+        return [];
+    }
+}
