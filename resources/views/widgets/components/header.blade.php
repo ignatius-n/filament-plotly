@@ -1,4 +1,4 @@
-@props(['heading', 'subheading', 'width', 'filters', 'filterFormAccessible'])
+@props(['heading', 'subheading', 'width', 'indicatorsCount','filters', 'filterFormAccessible'])
 <div class="filament-plotly-header">
 	@if ($heading || $subheading || $filters || $filterFormAccessible)
 		<div class="sm:flex justify-between gap-4 py-2 relative">
@@ -31,9 +31,9 @@
 			</div>
 
 			@if ($this->filterFormAccessible)
-			<div class="123">
+			<div>
 
-				<x-filament-plotly::filter-form :width="$width">
+				<x-filament-plotly::filter-form :indicatorsCount="$indicatorsCount" :width="$width">
 					{{ $filterForm }}
 				</x-filament-plotly::filter-form>
 

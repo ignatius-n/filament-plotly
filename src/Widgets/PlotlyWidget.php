@@ -34,7 +34,7 @@ class PlotlyWidget extends Widget implements HasSchemas
     // @phpstan-ignore-next-line
     protected string $view = 'filament-plotly::widgets.plotly-widget';
 
-    public ?array $chartData = null;
+    protected ?array $chartData = null;
 
     public ?array $chartConfig = null;
 

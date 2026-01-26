@@ -10,6 +10,7 @@ class Header extends Component
         public $heading,
         public $subheading,
         public $filters,
+        public $indicatorsCount,
         public $width,
         public $filterFormAccessible
     ) {}
